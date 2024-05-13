@@ -1167,7 +1167,7 @@ class Env:
             return
         self._vehicle_info.extend(
             (step, veh.id, veh.type.id, veh.speed, veh.lane.id, veh.laneposition, veh.fuelconsumption)
-        for veh in self.ts.vehicles)
+        for veh in self.ts.vehicles if hasattr(veh, 'lane')) # collision handling
 
     def extend_agent_info(self):
         """
@@ -1188,7 +1188,6 @@ class Env:
         """
         c = self.c
         info = self.rollout_info[1 + c.warmup_steps + c.skip_stat_steps:] # + 1 is for the first step used to set up reset()
-        # print('info', info.keys())
         mean = lambda L: np.mean(L) if len(L) else np.nan
         std = lambda L: np.std(L) if len(L) else np.nan
         unique = np.unique(flatten(info.id))

@@ -123,9 +123,10 @@ class RampEnv(Env):
                                 break
                     obs.append([speed, lead_dist, lead_speed, follow_dist, follow_speed, other_follow_dist, other_speed])
                 ids.append(veh.id)
+            if c.mrtl:
+                obs.append([c.beta])
+            
         obs = np.array(obs).reshape(-1, c._n_obs) / ([*lif(c.global_obs, max_dist), max_speed] + [max_dist, max_speed] * 3)
-        if c.mrtl:
-            obs = np.concatenate([obs, np.array([c.beta])])
         obs = np.clip(obs, 0, 1).astype(np.float32) * (1 - c.low) + c.low
         reward = len(ts.new_arrived) - c.collision_coef * len(ts.new_collided)
         
@@ -164,6 +165,8 @@ class RampEnv(Env):
                     else:
                         ttc = np.nan
                     ttcs.append(ttc)
+            else: # collision case
+                ttcs.append(0)
         fleet_ttc = np.nanmean(np.array(ttcs))
         return fleet_ttc
     
@@ -176,8 +179,13 @@ class RampEnv(Env):
                 if leader:
                     v_speed = v.speed
                     leader_speed = leader.speed
-                    drac = 0.5*np.square(v_speed-leader_speed)/headway
-                    dracs.append(drac)
+                    if leader_speed < v_speed:
+                        drac = 0.5*np.square(v_speed-leader_speed)/headway
+                        dracs.append(drac)
+                    else:
+                        dracs.append(0)
+            else: #collision case
+                dracs.append(1e10)
         fleet_drac = np.nanmean(np.array(dracs))
         return fleet_drac
 

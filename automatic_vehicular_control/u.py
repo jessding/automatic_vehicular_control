@@ -900,6 +900,7 @@ class Config(Namespace):
 
     def save(self, force=False):
         if force or not self.path.exists():
+            print(self.res)
             self.res.mk()
             self.path.save(from_numpy(self.attrs_save))
         return self
